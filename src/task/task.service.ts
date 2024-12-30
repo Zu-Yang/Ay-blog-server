@@ -15,7 +15,7 @@ export class TaskService {
     private readonly articleRepository: Repository<Article>,
   ) {}
 
-  @Cron(CronExpression.EVERY_10_MINUTES)
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async UpdateArticleData() {
     const keys = await this.redis.keys('article:article-*');
     for (let index = 0; index < keys.length; index++) {

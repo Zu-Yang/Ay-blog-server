@@ -12,9 +12,9 @@ import { Article } from '../modules/article/entities/article.entity';
       useFactory: () => ({
         type: 'single',
         url: `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
-        options: {
-          password: process.env.REDIS_PASSWORD,
-        },
+        // options: {
+        //   password: process.env.REDIS_PASSWORD,
+        // },
       }),
       // useFactory: () => ({
       //   type: 'cluster',
@@ -33,7 +33,7 @@ import { Article } from '../modules/article/entities/article.entity';
       //       password: 'redis_root',
       //     },
       //   },
-      // }),
+      // }),  
     }),
   ],
   controllers: [RedisController],

@@ -10,6 +10,8 @@ import { ArticleCommentModule } from './modules/article-comment/article-comment.
 import { MinioModule } from './minio/minio.module';
 import { RedisClientModule } from './redis/redis.module';
 import { TaskModule } from './task/task.module';
+import { LocalController } from './local/local.controller';
+import { LocalService } from './local/local.service';
 
 @Module({
   imports: [
@@ -30,5 +32,7 @@ import { TaskModule } from './task/task.module';
     RedisClientModule,
     TaskModule,
   ],
+  controllers: [LocalController],
+  providers: [LocalService],
 })
 export class AppModule {}
