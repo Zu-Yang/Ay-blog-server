@@ -4,10 +4,11 @@ import { RedisController } from './redis.controller';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Article } from '../modules/article/entities/article.entity';
+import { Visitor } from '../modules/visitor/entities/visitor.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Article]), // 动态导入实体,使其能被改模块使用
+    TypeOrmModule.forFeature([Article, Visitor]), // 动态导入实体,使其能被改模块使用
     RedisModule.forRootAsync({
       useFactory: () => ({
         type: 'single',
@@ -33,7 +34,7 @@ import { Article } from '../modules/article/entities/article.entity';
       //       password: 'redis_root',
       //     },
       //   },
-      // }),  
+      // }),
     }),
   ],
   controllers: [RedisController],

@@ -30,6 +30,7 @@
     "@nestjs/swagger": "^7.4.0",
     "@nestjs/typeorm": "^10.0.2",
     "@webundsoehne/nest-fastify-file-upload": "^2.2.0",
+    "axios": "^1.7.9",
     "cross-env": "^7.0.3",
     "dayjs": "^1.11.13",
     "dotenv": "^16.4.5",

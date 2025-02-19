@@ -6,12 +6,13 @@ import { UserModule } from './modules/user/user.module';
 import { ArticleModule } from './modules/article/article.module';
 import { CategoryModule } from './modules/category/category.module';
 import { TagModule } from './modules/tag/tag.module';
-import { ArticleCommentModule } from './modules/article-comment/article-comment.module';
+import { CommentModule } from './modules/comment/comment.module';
 import { MinioModule } from './minio/minio.module';
 import { RedisClientModule } from './redis/redis.module';
 import { TaskModule } from './task/task.module';
-import { LocalController } from './local/local.controller';
-import { LocalService } from './local/local.service';
+import { LoaclModule } from './local/local.module';
+import { VisitorModule } from './modules/visitor/visitor.module';
+import { ReplyModule } from './modules/reply/reply.module';
 
 @Module({
   imports: [
@@ -27,12 +28,13 @@ import { LocalService } from './local/local.service';
     ArticleModule,
     CategoryModule,
     TagModule,
-    ArticleCommentModule,
+    CommentModule,
     MinioModule,
     RedisClientModule,
     TaskModule,
+    VisitorModule,
+    LoaclModule,
+    ReplyModule
   ],
-  controllers: [LocalController],
-  providers: [LocalService],
 })
-export class AppModule {}
+export class AppModule { }

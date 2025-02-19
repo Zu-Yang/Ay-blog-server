@@ -1,45 +1,51 @@
+import axios from 'axios'; // 引入 axios
 import { Injectable } from '@nestjs/common';
-const os = require('os'); //node环境中才能使用os
+import { Visitor } from '../modules/visitor/entities/visitor.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class LocalService {
-  getNetworkIp() {
-    let needHost = '';
-    try {
-      // 获得网络接口列表
-      let network = os.networkInterfaces();
+  constructor(
+    @InjectRepository(Visitor)
+    private readonly visitoreRepository: Repository<Visitor>,
+  ) { }
 
-      for (let dev in network) {
-        let iface = network[dev];
-        if (iface) {
-          for (let i = 0; i < iface.length; i++) {
-            let alias = iface[i];
-            if (
-              alias.family === 'IPv4' &&
-              alias.address !== '127.0.0.1' &&
-              !alias.internal
-            ) {
-              needHost = alias.address;
-            }
-          }
+  async getUserIp() {
+    return axios.get('https://ip.useragentinfo.com/json')
+      .then(async response => {
+        const { country, short_name, province, city, area, isp, net, ip } = response.data;
+
+        // 检查访客ip是否已存在
+        const data = await this.visitoreRepository.findOne({
+          where: { ip },
+        });
+
+        const visitorEntity = new Visitor(); // 创建实体
+        visitorEntity.country = country;
+        visitorEntity.short_name = short_name;
+        visitorEntity.province = province;
+        visitorEntity.city = city;
+        visitorEntity.area = area;
+        visitorEntity.isp = isp;
+        visitorEntity.net = net;
+
+        if (data) {
+          // 存在则更新
+          await this.visitoreRepository.update(
+            { id: data.id, ip }, // update()第一个参数需要表所有的主键
+            visitorEntity,
+          );
+        } else {
+          // 不存在则新增
+          visitorEntity.ip = ip;
+          await this.visitoreRepository.save(visitorEntity);
         }
-      }
-      return {
-        code: 200,
-        msg: '获取成功',
-        data: {
-          ip: needHost,
-        },
-      };
-    } catch (e) {
-      console.log('*', e);
-      return {
-        code: 500,
-        msg: '获取失败',
-        data: {
-          ip: needHost,
-        },
-      };
-    }
+
+        return { code: 200, msg: "请求成功", data: { country, short_name, province, city, area, isp, net, ip } };
+      })
+      .catch(error => {
+        throw new Error('Error retrieving data from server');
+      });
   }
 }

@@ -63,12 +63,8 @@ export class Article {
   article_update_user_id: number;
 
   @Column({
-    type: 'text',
+    type: 'json',
     comment: '封面图',
-    transformer: {
-      to: (value: string[]) => JSON.stringify(value), // 保存时将数组转换为字符串
-      from: (value: string) => JSON.parse(value), // 读取时将字符串转换为数组
-    },
   })
   article_cover: string[];
 
@@ -77,9 +73,6 @@ export class Article {
 
   @Column({ type: 'longtext', comment: '博文内容' })
   article_content: string;
-
-  @Column({ type: 'text', comment: '锚点' })
-  article_content_title: string;
 
   @Column({ type: 'int', comment: '分类id' })
   category_id: number;

@@ -10,7 +10,7 @@ export class User {
   @PrimaryGeneratedColumn({ type: 'int', comment: '用户id' })
   user_id: number;
 
-  @Column({ type: 'varchar', length: 20, unique: true, comment: '用户名' })
+  @Column({ type: 'varchar', length: 20, comment: '用户名' })
   user_name: string;
 
   @Column({ type: 'varchar', length: 20, comment: '用户昵称' })

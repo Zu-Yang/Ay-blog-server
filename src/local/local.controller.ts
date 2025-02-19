@@ -1,14 +1,14 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Request } from '@nestjs/common';
 import { LocalService } from './local.service';
 
 @Controller('local')
 export class LocalController {
-  constructor(private readonly localService: LocalService) {}
+  constructor(private readonly localService: LocalService) { }
 
-  @Get('getIP')
-  async getNetworkIp() {
-    const data = this.localService.getNetworkIp();
+  @Get('getUserIP')
+  async getUserIp() {
+    const res = this.localService.getUserIp();
 
-    return data;
+    return res;
   }
 }

@@ -20,13 +20,14 @@ export class ArticleService {
 
     @InjectRepository(Tag)
     private readonly tagRepository: Repository<Tag>,
-  ) {}
+  ) { }
 
   // 获取全部博文
   // 分页数据类型
 
   async getAllArticles(params: pagination) {
     const { page, limit } = params;
+
     // https://typeorm.bootcss.com/repository-a
     const [result, total] = await this.articleRepository.findAndCount({
       skip: (page - 1) * limit,
@@ -68,7 +69,6 @@ export class ArticleService {
       article_id,
       article_title,
       article_content,
-      article_content_title,
       article_summary,
       article_cover,
       article_top,
@@ -103,7 +103,6 @@ export class ArticleService {
     // article.article_id = article_id; // 文章id
     article.article_title = article_title; // 标题
     article.article_content = article_content; // 内容
-    article.article_content_title = article_content_title; // 锚点
     article.article_summary = article_summary; // 摘要
     article.article_cover = article_cover; // 封面
     article.article_top = article_top; // 是否置顶

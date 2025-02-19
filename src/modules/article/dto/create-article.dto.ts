@@ -48,9 +48,6 @@ export class CreateArticleDto {
   @ApiProperty({ description: '博文内容' })
   article_content: string;
 
-  @ApiProperty({ description: '文章锚点' })
-  article_content_title: string;
-
   @ApiProperty({ description: '分类引用表' })
   category_id: number;
 
