@@ -12,7 +12,7 @@ export class LocalService {
   ) { }
 
   async getUserIp() {
-    return axios.get('http://ip.useragentinfo.com/json')
+    return axios.get('https://ip.useragentinfo.com/json')
       .then(async response => {
         const { country, short_name, province, city, area, isp, net, ip } = response.data;
 
