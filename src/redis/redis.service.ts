@@ -24,31 +24,60 @@ export class RedisService {
     const { article_id, ip } = params;
     const readKey = `article:read-user:${article_id}-${ip}`;
     const idKey = `article:article-${article_id}`;
+    const likeKey = `article:like-user:${ip}`;
 
+    const hasLikeKey = await this.redis.get(likeKey);
     const hasReadKey = await this.redis.get(readKey);
     const hasIdKey = await this.redis.get(idKey);
 
     const data = {
       readCount: 0,
       likeCount: 0,
+      likeStatus: false,
     };
 
-    if (!hasIdKey) {
-      const articleInfo = await this.articleRepository.findOne({
-        where: { article_id },
-      });
-      data.readCount = articleInfo.article_read_count;
-      data.likeCount = articleInfo.article_like_count;
-    } else {
-      const idKeyValue = JSON.parse(hasIdKey)
-      data.readCount = idKeyValue.readCount;
-      data.likeCount = idKeyValue.likeCount;
+    try {
+      const likeList = []
+      if (!hasLikeKey) {
+        const visitorInfo = await this.visitorRepository.findOne({
+          where: { ip },
+        });
+        likeList.push(...visitorInfo.article_like_list)
+      } else {
+        likeList.push(...JSON.parse(hasLikeKey).likeList)
+      }
+
+      if (likeList) {
+        likeList.forEach((item) => {
+          if (item.id == article_id) {
+            data.likeStatus = item.status
+          }
+        })
+      }
+    } catch (error) {
+      new Error(error)
+    }
+
+    try {
+      if (!hasIdKey) {
+        const articleInfo = await this.articleRepository.findOne({
+          where: { article_id },
+        });
+        data.readCount = articleInfo.article_read_count;
+        data.likeCount = articleInfo.article_like_count;
+      } else {
+        const idKeyValue = JSON.parse(hasIdKey)
+        data.readCount = idKeyValue.readCount;
+        data.likeCount = idKeyValue.likeCount;
+      }
+    } catch (error) {
+      new Error(error)
     }
 
     if (!hasReadKey) {
       data.readCount += 1;
       await this.redis.set(idKey, JSON.stringify(data)); // 储存所需数据
-      await this.redis.set(readKey, JSON.stringify({ article_id, waiting: true }), 'EX', 3600); // 用户访问标记,一小时后过期
+      await this.redis.set(readKey, JSON.stringify({ article_id, waiting: true }), 'EX', 60 * 60 * 24); // 用户访问标记,一天后过期
       return {
         code: 200,
         msg: 'success',
@@ -110,10 +139,10 @@ export class RedisService {
         const exist = likeKeyValue.likeList.some((item) => item.id == article_id);
         // 更新文章点赞状态
         if (exist) {
-          for (let index = 0; index < likeKeyValue.length; index++) {
+          for (let index = 0; index < likeKeyValue.likeList.length; index++) {
             const item = likeKeyValue.likeList[index];
             if (item.id == article_id) {
-              !status && likeKeyValue.likeList.splice(index, 1); // 删除对应索引的值
+              !status && likeKeyValue.likeList.splice(index, 1); // status为false,删除对应索引的值
               await this.redis.set(
                 likeKey,
                 JSON.stringify(likeKeyValue),
@@ -140,41 +169,41 @@ export class RedisService {
       return {
         code: 200,
         msg: status ? '点赞成功' : '取消点赞',
-        data: { likeCount: data.likeCount },
+        // data: { likeCount: data.likeCount },
       };
     } catch (error) {
       console.error(error);
     }
   }
 
-  async getArticleLikeList(ip: string) {
-    const likeKey = `article:like-user:${ip}`;
-    const hasLikeKey = await this.redis.get(likeKey);
+  // async getArticleLikeList(ip: string) {
+  //   const likeKey = `article:like-user:${ip}`;
+  //   const hasLikeKey = await this.redis.get(likeKey);
 
-    if (!hasLikeKey) {
-      const visitorInfo = await this.visitorRepository.findOne({
-        where: { ip },
-      });
-      if (visitorInfo) {
-        const likeList = visitorInfo.article_like_list;
-        return {
-          code: 200,
-          msg: 'success',
-          data: likeList,
-        };
-      } else {
-        return {
-          code: 200,
-          msg: '无数据',
-          data: [],
-        };
-      }
-    } else {
-      return {
-        code: 200,
-        msg: 'success',
-        data: JSON.parse(hasLikeKey).likeList,
-      };
-    }
-  }
+  //   if (!hasLikeKey) {
+  //     const visitorInfo = await this.visitorRepository.findOne({
+  //       where: { ip },
+  //     });
+  //     if (visitorInfo) {
+  //       const likeList = visitorInfo.article_like_list;
+  //       return {
+  //         code: 200,
+  //         msg: 'success',
+  //         data: likeList,
+  //       };
+  //     } else {
+  //       return {
+  //         code: 200,
+  //         msg: '无数据',
+  //         data: [],
+  //       };
+  //     }
+  //   } else {
+  //     return {
+  //       code: 200,
+  //       msg: 'success',
+  //       data: JSON.parse(hasLikeKey).likeList,
+  //     };
+  //   }
+  // }
 }

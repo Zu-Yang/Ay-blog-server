@@ -39,10 +39,10 @@ export class Comment {
   // @Column({ type: "varchar", comment: "被回复的用户ip", nullable: true })
   // reply_ip: string
 
-  @Column({ type: "boolean", comment: "是否展开", default: false, nullable: false })
-  open: boolean;
+  // @Column({ type: "boolean", comment: "是否展开", default: false, nullable: false })
+  // open: boolean;
 
-  @Column({ type: "varchar", comment: "评论内容", nullable: false })
+  @Column({ type: "text", comment: "评论内容", nullable: false })
   content: string
 
   @Column({ type: "int", comment: "0不删除，1软删除", default: 0, nullable: false })

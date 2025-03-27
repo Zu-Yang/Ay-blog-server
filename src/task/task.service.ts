@@ -49,11 +49,6 @@ export class TaskService {
 
       const { country, short_name, province, city, area, isp, net, ip, likeList } = JSON.parse(res)
 
-      // 检查访客ip是否已存在
-      const data = await this.visitoreRepository.findOne({
-        where: { ip },
-      });
-
       visitorEntity.article_like_list = likeList;
       visitorEntity.country = country;
       visitorEntity.short_name = short_name;
@@ -62,6 +57,11 @@ export class TaskService {
       visitorEntity.area = area;
       visitorEntity.isp = isp;
       visitorEntity.net = net;
+
+      // 检查访客ip是否已存在
+      const data = await this.visitoreRepository.findOne({
+        where: { ip },
+      });
 
       if (data) {
         // 存在则更新

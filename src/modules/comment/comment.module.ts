@@ -5,9 +5,10 @@ import { CommentController } from './comment.controller';
 import { Comment } from './entities/comment.entity'
 import { Visitor } from '../visitor/entities/visitor.entity'
 import { Reply } from '../reply/entities/reply.entity'
+import { Article } from '../article/entities/article.entity'
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Comment, Reply, Visitor])],
+  imports: [TypeOrmModule.forFeature([Article, Comment, Reply, Visitor])],
   controllers: [CommentController],
   providers: [CommentService],
 })

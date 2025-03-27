@@ -19,17 +19,19 @@ export class RedisController {
     }
     return await this.redisService.articleCount(params);
   }
-  @Post('getLikeList')
-  async getArticleLikeList(@Body() params: { ip: string }) {
-    const { ip } = params
-    if (!ip) {
-      return {
-        code: 400,
-        msg: '参数错误',
-      };
-    }
-    return await this.redisService.getArticleLikeList(ip);
-  }
+
+  // @Post('getLikeList')
+  // async getArticleLikeList(@Body() params: { ip: string }) {
+  //   const { ip } = params
+  //   if (!ip) {
+  //     return {
+  //       code: 400,
+  //       msg: '参数错误',
+  //     };
+  //   }
+  //   return await this.redisService.getArticleLikeList(ip);
+  // }
+
   @Post('setLikeStatus')
   async articleLikeCount(@Body() params: likeStatus) {
     const { article_id, status, ip, country, short_name, province, city, area, isp, net } = params;

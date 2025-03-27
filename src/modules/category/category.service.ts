@@ -35,6 +35,7 @@ export class CategoryService {
     return info;
   }
 
+  // 创建分类
   async createCategory(createCategoryDto: CreateCategoryDto) {
     const category = new Category();
 

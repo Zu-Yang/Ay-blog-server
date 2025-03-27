@@ -1,17 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { HttpException, HttpStatus } from '@nestjs/common';
 import { Repository, getConnection } from 'typeorm';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { Comment } from './entities/comment.entity';
 import { Visitor } from '../visitor/entities/visitor.entity'
 import { Reply } from '../reply/entities/reply.entity'
+import { Article } from '../article/entities/article.entity'
 import type { addComment, getComment } from './type/type'
 import dayjs from 'dayjs';
 
 @Injectable()
 export class CommentService {
   constructor(
+    @InjectRepository(Article)
+    private readonly articleRepository: Repository<Article>,
+
     @InjectRepository(Comment)
     private readonly commentRepository: Repository<Comment>,
 
@@ -22,7 +27,20 @@ export class CommentService {
     private readonly replyRepository: Repository<Reply>
   ) { }
 
-  async addComment(params) {
+  /* 计算评论数 */
+  allCommentNum(commentList: Comment[], parentNum: number) {
+    if (!commentList.length) return 0
+    let totalNum = parentNum
+    commentList.forEach(item => {
+      const replyNum = item.replys.length
+      if (replyNum) {
+        totalNum += replyNum
+      }
+    });
+    return totalNum
+  }
+
+  async addComment(params: any) {
     try {
       const { nick_name, user_email, user_avatar, user_ip, jump_url, biz_type, biz_id, comment_id, parent_id, reply_ip, content, deleted, approved, created_at, updated_at } = params
       // 回复评论
@@ -31,19 +49,19 @@ export class CommentService {
         const userInfo = await this.visitorRepository.findOne({
           where: { ip: user_ip }
         })
-        if (!userInfo) return { code: 404, msg: "信息未登记，请刷新重试" }
+        if (!userInfo) throw new HttpException('信息未登记，请刷新重试', HttpStatus.NOT_FOUND);
         replyEntity.visitor_info = userInfo
 
         const replyInfo = await this.visitorRepository.findOne({
           where: { ip: reply_ip }
         })
-        if (!replyInfo) return { code: 404, msg: "回复用户不存在" }
+        if (!replyInfo) throw new HttpException('回复用户不存在', HttpStatus.NOT_FOUND);
         replyEntity.reply_info = replyInfo
 
         const commentInfo = await this.commentRepository.findOne({
           where: { comment_id: parent_id }
         })
-        if (!commentInfo) return { code: 404, msg: "回复的评论不存在" }
+        if (!commentInfo) throw new HttpException('回复的评论不存在', HttpStatus.NOT_FOUND);
         replyEntity.parent_comments = commentInfo
 
         replyEntity.nick_name = nick_name
@@ -62,14 +80,27 @@ export class CommentService {
         replyEntity.created_at = new Date()
         replyEntity.updated_at = new Date()
         const data = await this.replyRepository.save(replyEntity)
-        if (data) return { code: 200, msg: 'success', data }
+        if (data) {
+          // 更新文章评论数（递增1）
+          await this.articleRepository.increment(
+            { article_id: biz_id },
+            "article_comment_count",
+            1
+          );
+          return {
+            code: HttpStatus.OK,
+            msg: 'success',
+            data
+          };
+        }
       } else {
         // 评论
         const commentEntity = new Comment()
         const visitorInfo = await this.visitorRepository.findOne({
           where: { ip: user_ip }
         })
-        if (!visitorInfo) return { code: 404, msg: "信息未登记，请刷新重试" }
+        if (!visitorInfo) throw new HttpException('信息未登记，请刷新重试', HttpStatus.NOT_FOUND);
+        commentEntity.replys = []
         commentEntity.visitor_info = visitorInfo
         commentEntity.nick_name = nick_name
         commentEntity.user_email = user_email
@@ -85,11 +116,26 @@ export class CommentService {
         commentEntity.created_at = new Date()
         commentEntity.updated_at = new Date()
         const data = await this.commentRepository.save(commentEntity)
-        if (data) return { code: 200, msg: 'success', data }
+        if (data) {
+          // 更新文章评论数（递增1）
+          await this.articleRepository.increment(
+            { article_id: biz_id },
+            "article_comment_count",
+            1
+          );
+          return {
+            code: HttpStatus.OK,
+            msg: 'success',
+            data
+          };
+        }
       }
     } catch (error) {
-      console.error(error);
-      return { code: 500, msg: '服务器错误', data: null, }
+      throw new HttpException(
+        '服务器错误',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        { cause: error }
+      );
     }
   }
 
@@ -97,7 +143,6 @@ export class CommentService {
     return new Promise(async (resolve, reject) => {
       const { biz_id, biz_type, page, limit } = params
 
-      // 将 page 和 limit 参数转换为整数
       const pageNumber = parseInt(page);
       const limitNumber = parseInt(limit);
 
@@ -111,11 +156,20 @@ export class CommentService {
         relations: ['visitor_info', 'replys', 'replys.visitor_info', 'replys.reply_info'],
         skip: limitNumber * (pageNumber - 1), // 跳过
         take: limitNumber, // 限量
+
       }).then(([data, total]) => {
-        resolve({ code: 200, msg: '请求成功', data, total, page: pageNumber, limit: limitNumber })
+        const totalNum = this.allCommentNum(data, total)
+        if (totalNum) {
+          resolve({ code: HttpStatus.OK, msg: '请求成功', data, oneLevelCount: total, total: totalNum, page: pageNumber, limit: limitNumber })
+        } else {
+          resolve({ code: HttpStatus.NO_CONTENT, msg: '无内容', data: [], oneLevelCount: total, total: totalNum, page: pageNumber, limit: limitNumber })
+        }
       }).catch((err) => {
-        console.error(err);
-        reject(err)
+        reject(new HttpException(
+          '查询失败',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+          { cause: err }
+        ));
       });
     })
   }

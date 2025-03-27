@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, HttpException, HttpStatus } from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
@@ -15,22 +15,19 @@ export class CommentController {
     let { nick_name, user_email, user_avatar, user_ip, jump_url, biz_type, biz_id, comment_id, parent_id, reply_ip, content, deleted, approved, created_at, updated_at } = params
 
     if (/\s/.test(nick_name)) {
-      return { code: 400, message: '昵称不能有空格' };
+      throw new HttpException('昵称不能有空格', HttpStatus.BAD_REQUEST);
     }
     else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(user_email)) {
-      return { code: 400, message: '邮箱格式错误' };
+      throw new HttpException('邮箱格式错误', HttpStatus.BAD_REQUEST);
     }
     else if (!comment_id) {
-      return { code: 400, message: '评论id不能为空' };
+      throw new HttpException('评论id不能为空', HttpStatus.BAD_REQUEST);
     }
     else if (!user_ip) {
-      return { code: 400, message: '用户ip不能为空' };
+      throw new HttpException('用户ip不能为空', HttpStatus.BAD_REQUEST);
     }
-    // else if (!reply_ip) {
-    //   return { code: 400, message: '回复ip不能为空' };
-    // }
     else if (!content) {
-      return { code: 400, message: '评论内容不能为空' };
+      throw new HttpException('评论内容不能为空', HttpStatus.BAD_REQUEST);
     }
 
     // 默认值
@@ -68,19 +65,19 @@ export class CommentController {
     const { biz_id, biz_type, page, limit } = params
     const typeList = ['article', 'message']
     if (!biz_id) {
-      return { code: 400, msg: '缺少业务id字段' };
+      throw new HttpException('缺少业务id字段', HttpStatus.BAD_REQUEST);
     }
     else if (!biz_type) {
-      return { code: 400, msg: '缺少业务类型字段' };
+      throw new HttpException('缺少业务类型字段', HttpStatus.BAD_REQUEST);
     }
     else if (!typeList.includes(biz_type)) {
-      return { code: 400, msg: '不存在该业务' };
+      throw new HttpException('不存在该业务', HttpStatus.BAD_REQUEST);
     }
     else if (!page) {
-      return { code: 400, msg: '缺少页数字段' };
+      throw new HttpException('缺少页数字段', HttpStatus.BAD_REQUEST);
     }
     else if (!limit) {
-      return { code: 400, msg: '缺少限量字段' };
+      throw new HttpException('缺少限量字段', HttpStatus.BAD_REQUEST);
     }
 
     return await this.commentService.getComment(params)

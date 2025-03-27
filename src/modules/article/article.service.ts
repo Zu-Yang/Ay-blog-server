@@ -23,17 +23,35 @@ export class ArticleService {
   ) { }
 
   // 获取全部博文
-  // 分页数据类型
-
   async getAllArticles(params: pagination) {
-    const { page, limit } = params;
+    const { page, orderBy, limit } = params;
+    const orderParams = {}
+    switch (orderBy) {
+      case "new":
+        orderParams['article_create_time'] = 'DESC' // 按创建时间降序排列（最新文章在前）反之为:ASC
+        break;
+      case "hot":
+        orderParams['article_read_count'] = 'DESC' // 按阅读量降序排列（最新文章在前）反之为:ASC
+        break;
+      case "comment":
+        orderParams['article_comment_count'] = 'DESC' // 按评论数降序排列（最新文章在前）反之为:ASC
+        break;
+      case "like":
+        orderParams['article_like_count'] = 'DESC' // 按点赞量降序排列（最新文章在前）反之为:ASC
+        break;
+      default:
+        orderParams['article_create_time'] = 'DESC' // 按创建时间降序排列（最新文章在前）反之为:ASC
+        break;
+    }
 
     // https://typeorm.bootcss.com/repository-a
     const [result, total] = await this.articleRepository.findAndCount({
       skip: (page - 1) * limit,
       take: limit,
       relations: ['category', 'tag'], // 关联分类和标签
+      order: orderParams // 排序
     });
+
     const count = Math.ceil(total / limit);
     if (page > count) {
       return {
@@ -51,7 +69,7 @@ export class ArticleService {
       };
     }
   }
-  // 获取博文
+  // 获取博文详情
   async getArticle(id: number) {
     const articleInfo = await this.articleRepository
       .createQueryBuilder('article')
