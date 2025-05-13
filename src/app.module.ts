@@ -17,6 +17,7 @@ import { ReplyModule } from './modules/reply/reply.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
+      isGlobal: true, // 设置为全局
       envFilePath:
         process.env.NODE_ENV === 'development'
           ? '.env.development'

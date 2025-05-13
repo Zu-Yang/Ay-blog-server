@@ -69,6 +69,15 @@ export class ArticleService {
       };
     }
   }
+  // 获取置顶博文
+  async getTopArticles() {
+    const result = await this.articleRepository.find({
+      where: { article_top: 1 },
+      relations: ['category', 'tag'], // 关联分类和标签
+      order: { article_create_time: 'DESC' }, // 按创建时间降序排列（最新文章在前）
+    }); 
+    return { code: 200, data: result, msg:'success' };
+  }
   // 获取博文详情
   async getArticle(id: number) {
     const articleInfo = await this.articleRepository
@@ -79,7 +88,6 @@ export class ArticleService {
 
     return { code: 200, data: articleInfo, msg: 'success' };
   }
-
   // 新增博文
   async createArticle(createArticleDto: CreateArticleDto): Promise<Object> {
     const article = new Article(); // 创建实体
@@ -100,6 +108,7 @@ export class ArticleService {
       category_id,
       tag_id,
     } = createArticleDto;
+console.log(createArticleDto);
 
     const category_info = await this.categoryRepository.findOne({
       where: { category_id: category_id },

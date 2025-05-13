@@ -19,13 +19,20 @@ import { ParseObjPipe } from './pipe/parse-obj.pipe';
 @ApiTags('博文模块') // 设置swagger文档接口分类
 @Controller('article')
 export class ArticleController {
-  constructor(private readonly articleService: ArticleService) {}
+  constructor(private readonly articleService: ArticleService) { }
 
   @Get('list')
   @ApiOperation({ summary: '查询所有博文' })
   getAllArticles(@Query() params) {
     return this.articleService.getAllArticles(params);
   }
+
+  @Get('toplist')
+  @ApiOperation({ summary: '查询所有博文' })
+  getTopArticles(@Query() params) {
+    return this.articleService.getTopArticles();
+  }
+
   @Get('detail')
   @ApiOperation({ summary: '博文详情' })
   getArticle(@Query('id') id: number) {
