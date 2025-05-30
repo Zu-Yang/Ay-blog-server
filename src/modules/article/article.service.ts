@@ -61,10 +61,13 @@ export class ArticleService {
     } else {
       return {
         code: 200,
-        total,
-        page,
-        count,
-        data: result,
+        data: {
+          list: result,
+          total: Number(total),
+          limit: Number(limit),
+          page: Number(page),
+          count: Number(count),
+        },
         msg: 'success',
       };
     }
@@ -75,8 +78,8 @@ export class ArticleService {
       where: { article_top: 1 },
       relations: ['category', 'tag'], // 关联分类和标签
       order: { article_create_time: 'DESC' }, // 按创建时间降序排列（最新文章在前）
-    }); 
-    return { code: 200, data: result, msg:'success' };
+    });
+    return { code: 200, data: result, msg: 'success' };
   }
   // 获取博文详情
   async getArticle(id: number) {
@@ -108,7 +111,7 @@ export class ArticleService {
       category_id,
       tag_id,
     } = createArticleDto;
-console.log(createArticleDto);
+    console.log(createArticleDto);
 
     const category_info = await this.categoryRepository.findOne({
       where: { category_id: category_id },
@@ -141,6 +144,57 @@ console.log(createArticleDto);
       if (res) return { code: 200, msg: '发布成功', data: res };
     } catch (error) {
       return { code: 500, msg: '发布失败!', error };
+    }
+  }
+
+  // 更新博文
+  async updateArticle(updateArticleDto: UpdateArticleDto) {
+    const {
+      article_id,
+      article_title,
+      article_content,
+      article_html,
+      article_summary,
+      article_cover,
+      article_top,
+      category_id,
+      tag_id,
+    } = updateArticleDto;
+    // console.log(updateArticleDto);
+    // return
+    const article = await this.articleRepository.findOne({
+      where: { article_id: article_id },
+    });
+    if (!article) return { code: 500, msg: '文章不存在!' };
+
+    const category_info = await this.categoryRepository.findOne({
+      where: { category_id: category_id },
+    })
+    if (!category_info) return { code: 500, msg: '文章分类不存在!' };
+    else article.category = category_info;
+
+    const tag_info = await this.tagRepository.findOne({
+      where: { tag_id: tag_id },
+    });
+    if (!tag_info) return { code: 500, msg: '文章标签不存在!' };
+    else article.tag = tag_info;
+
+    article.article_title = article_title; // 标题
+    article.article_content = article_content; // 内容
+    article.article_html = article_html; // HTML内容
+    article.article_summary = article_summary; // 摘要
+    article.article_cover = article_cover; // 封面
+    article.article_top = article_top; // 是否置顶
+    article.article_update_time = Date.now(); // 更新时间戳
+    article.category_id = category_id; // 分类id
+    article.tag_id = tag_id; // 标签id
+
+    try {
+      const res = await this.articleRepository.save(article); // save():id存在则更新,不存在则新增
+      if (res) return { code: 200, msg: '修改成功', data: res };
+    }
+    catch (error) {
+      return { code: 500, msg: '修改失败!', error };
     }
   }
 }

@@ -11,4 +11,8 @@ export class TagController {
   create(@Body() createTagDto: CreateTagDto) {
     return this.tagService.createTag(createTagDto)
   }
+  @Get('getTag')
+  findAll() {
+    return this.tagService.findAll()
+  }
 }

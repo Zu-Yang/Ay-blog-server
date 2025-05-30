@@ -74,6 +74,9 @@ export class Article {
   @Column({ type: 'longtext', comment: '博文内容' })
   article_content: string;
 
+  @Column({ type: 'longtext', comment: '博文内容HTML' })
+  article_html: string;
+
   @Column({ type: 'int', comment: '分类id' })
   category_id: number;
 

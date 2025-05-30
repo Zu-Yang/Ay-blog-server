@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -10,9 +10,9 @@ export class TagService {
   constructor(
     @InjectRepository(Tag)
     private readonly tagRepository: Repository<Tag>,
-  ) {}
+  ) { }
 
-  createTag(createTagDto: CreateTagDto) {
+  async createTag(createTagDto: CreateTagDto) {
     const tag = new Tag();
 
     tag.tag_id = createTagDto.tag_id;
@@ -24,13 +24,26 @@ export class TagService {
     tag.articles = createTagDto.articles;
 
     try {
-      const info = this.tagRepository.save(tag);
+      const info = await this.tagRepository.save(tag);
 
       if (info) {
-        return { code: 200, msg: 'create success' };
+        return { code: HttpStatus.OK, msg: 'create success' };
       }
     } catch (error) {
-      throw new Error('Failed to save tag');
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+  async findAll() {
+    try {
+      const result = await this.tagRepository.find({
+        select: ['tag_id', 'tag_name']
+      });
+
+      if (result) {
+        return { code: HttpStatus.OK, data: result, msg: 'success' };
+      }
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

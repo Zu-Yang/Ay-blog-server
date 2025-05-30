@@ -46,4 +46,12 @@ export class ArticleController {
   ): Promise<Object> {
     return this.articleService.createArticle(createArticleDto);
   }
+
+  @Patch('updateArticle') // 使用PATCH方法进行部分更新，适用于更新文章的部分字段
+  @ApiOperation({ summary: '修改博文' })
+  updateArticle(
+    @Body(new ParseObjPipe()) updateArticleDto: UpdateArticleDto,
+  ) {
+    return this.articleService.updateArticle(updateArticleDto);
+  }
 }

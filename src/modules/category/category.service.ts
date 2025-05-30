@@ -10,17 +10,15 @@ export class CategoryService {
   constructor(
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
-  ) {}
+  ) { }
   // 获取分类
   async getCategory() {
     try {
-      const res = await this.categoryRepository.find();
+      const res = await this.categoryRepository.find(
+        { select: ['category_id', 'category_name'] }
+      );
       if (res) {
-        return {
-          code: 200,
-          msg: 'success',
-          data: res,
-        };
+        return { code: 200, msg: 'success', data: res };
       }
     } catch (error) {
       return error;
