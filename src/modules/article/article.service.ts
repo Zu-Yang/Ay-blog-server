@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, getConnection } from 'typeorm';
 import { Article } from './entities/article.entity';
+import { Reply } from '../reply/entities/reply.entity';
+import { Comment } from '../comment/entities/comment.entity';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { Category } from '../category/entities/category.entity';
@@ -146,7 +148,6 @@ export class ArticleService {
       return { code: 500, msg: '发布失败!', error };
     }
   }
-
   // 更新博文
   async updateArticle(updateArticleDto: UpdateArticleDto) {
     const {
@@ -195,6 +196,49 @@ export class ArticleService {
     }
     catch (error) {
       return { code: 500, msg: '修改失败!', error };
+    }
+  }
+  // 删除博文
+  async deleteArticle(id: number) {
+    const article = await this.articleRepository.findOne({
+      where: { article_id: id },
+    });
+    if (!article) return { code: 500, msg: '文章不存在!' };
+    try {
+      // 获取数据库连接
+      const connection = this.articleRepository.manager.connection;
+
+      // 开启事务处理，按照外键约束顺序删除相关数据：先删除回复，再删除评论，最后删除文章（避免外键约束问题）。
+      await connection.transaction(async manager => {
+        // 1. 先删除文章的所有回复
+        await manager.delete(Reply, {
+          biz_id: id,  // 业务ID为文章ID
+          biz_type: 'article'  // 业务类型为文章
+        });
+
+        // 2. 删除文章的所有评论
+        await manager.delete(Comment, {
+          biz_id: id,  // 业务ID为文章ID
+          biz_type: 'article'  // 业务类型为文章
+        });
+
+        // 3. 最后删除文章本身
+        await manager.delete(Article, {
+          article_id: id  // 根据文章ID删除
+        });
+      });
+      return { code: 200, msg: '删除成功' };
+    }
+    catch (error) {
+      console.error('删除文章失败:', {
+        articleId: id,
+        error: error.message,
+        stack: error.stack
+      });
+      throw new HttpException(
+        `删除失败: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
     }
   }
 }

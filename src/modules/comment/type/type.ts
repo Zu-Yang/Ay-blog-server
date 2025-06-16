@@ -10,8 +10,6 @@ export type addComment = {
   parent_id?: string,
   reply_ip: string,
   content: string,
-  deleted: number,
-  approved: number,
   created_at: Date,
   updated_at: Date,
 }

@@ -34,17 +34,14 @@ export class Reply {
   @PrimaryColumn({ type: "varchar", comment: "回复的评论id，没有为null" })
   parent_id: string
 
+  @Column({ type: "varchar", comment: "被回复的评论id,回复一级评论时reply_id=parent_id", nullable: false })
+  reply_id: string
+
   @Column({ type: "varchar", comment: "被回复的用户ip", nullable: false })
   reply_ip: string
 
   @Column({ type: "text", comment: "评论内容", nullable: false })
   content: string
-
-  @Column({ type: "int", comment: "0不删除，1软删除", default: 0, nullable: false })
-  deleted: number
-
-  @Column({ type: "int", comment: "0审核不通过，1审核通过", default: 1, nullable: false })
-  approved: number
 
   @Column({ type: "datetime", comment: "评论时间", nullable: true })
   created_at: Date

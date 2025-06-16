@@ -1,14 +1,16 @@
-import { Controller, Get, Request } from '@nestjs/common';
+import { Controller, Get, HttpStatus, Query, Request, Ip } from '@nestjs/common';
 import { LocalService } from './local.service';
 
 @Controller('local')
 export class LocalController {
   constructor(private readonly localService: LocalService) { }
 
-  @Get('getUserIP')
-  async getUserIp() {
-    const res = this.localService.getUserIp();
+  @Get('getLocal')
+  async getUserIp(@Query('ip') ip: string) {
+    if (!ip) {
+      return { code: HttpStatus.BAD_REQUEST, msg: 'ip不能为空' };
+    }
 
-    return res;
+    return this.localService.getLocation(ip);
   }
 }

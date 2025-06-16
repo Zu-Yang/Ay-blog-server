@@ -42,9 +42,9 @@ export class CommentService {
 
   async addComment(params: any) {
     try {
-      const { nick_name, user_email, user_avatar, user_ip, jump_url, biz_type, biz_id, comment_id, parent_id, reply_ip, content, deleted, approved, created_at, updated_at } = params
+      const { nick_name, user_email, user_avatar, user_ip, jump_url, biz_type, biz_id, comment_id, parent_id, reply_id, reply_ip, content, created_at, updated_at } = params
       // 回复评论
-      if (reply_ip) {
+      if (parent_id && reply_id) {
         const replyEntity = new Reply()
         const userInfo = await this.visitorRepository.findOne({
           where: { ip: user_ip }
@@ -73,10 +73,9 @@ export class CommentService {
         replyEntity.biz_type = biz_type
         replyEntity.comment_id = comment_id
         replyEntity.parent_id = parent_id
+        replyEntity.reply_id = reply_id
         replyEntity.reply_ip = reply_ip
         replyEntity.content = content
-        replyEntity.deleted = deleted
-        replyEntity.approved = approved
         replyEntity.created_at = new Date()
         replyEntity.updated_at = new Date()
         const data = await this.replyRepository.save(replyEntity)
@@ -111,18 +110,12 @@ export class CommentService {
         commentEntity.biz_type = biz_type
         commentEntity.comment_id = comment_id
         commentEntity.content = content
-        commentEntity.deleted = deleted
-        commentEntity.approved = approved
         commentEntity.created_at = new Date()
         commentEntity.updated_at = new Date()
         const data = await this.commentRepository.save(commentEntity)
         if (data) {
           // 更新文章评论数（递增1）
-          await this.articleRepository.increment(
-            { article_id: biz_id },
-            "article_comment_count",
-            1
-          );
+          await this.articleRepository.increment({ article_id: biz_id }, "article_comment_count", 1);
           return {
             code: HttpStatus.OK,
             msg: 'success',
@@ -150,19 +143,17 @@ export class CommentService {
         where: {
           biz_id: biz_id,
           biz_type: biz_type,
-          deleted: 0,
-          approved: 1
         },
         relations: ['visitor_info', 'replys', 'replys.visitor_info', 'replys.reply_info'],
         skip: limitNumber * (pageNumber - 1), // 跳过
         take: limitNumber, // 限量
 
       }).then(([data, total]) => {
-        const totalNum = this.allCommentNum(data, total)
-        if (totalNum) {
-          resolve({ code: HttpStatus.OK, msg: '请求成功', data, oneLevelCount: total, total: totalNum, page: pageNumber, limit: limitNumber })
+        // const totalNum = this.allCommentNum(data, total)
+        if (total) {
+          resolve({ code: HttpStatus.OK, msg: '请求成功', data, oneLevelCount: total, page: pageNumber, limit: limitNumber })
         } else {
-          resolve({ code: HttpStatus.NO_CONTENT, msg: '无内容', data: [], oneLevelCount: total, total: totalNum, page: pageNumber, limit: limitNumber })
+          resolve({ code: HttpStatus.NO_CONTENT, msg: '无内容', data: [], oneLevelCount: total, page: pageNumber, limit: limitNumber })
         }
       }).catch((err) => {
         reject(new HttpException(
@@ -173,4 +164,55 @@ export class CommentService {
       });
     })
   }
+
+  /**
+   *  删除评论&删除回复（开启事务级联删除） 
+   *  @param {string} `comment_id` - 评论id
+   *  @param {string} `parent_id` - 回复id
+   *  @param {number} `biz_id` - 业务id
+   *  @param {string} `biz_type` - 业务类型
+   * */
+  async deleteComment(params) {
+    const { comment_id, parent_id, biz_id, biz_type } = params;
+
+    try {
+      // 获取数据库连接
+      const connection = this.commentRepository.manager.connection;
+
+      // 开启事务处理
+      await connection.transaction(async manager => {
+        if (parent_id) {
+          // 删除单条回复
+          await manager.delete(Reply, {
+            comment_id,
+            biz_id,
+            biz_type
+          });
+        } else {
+          // 先删除所有相关回复
+          await manager.delete(Reply, {
+            parent_id: comment_id,
+            biz_id,
+            biz_type
+          });
+
+          // 删除主评论
+          await manager.delete(Comment, {
+            comment_id,
+            biz_id,
+            biz_type
+          });
+        }
+      });
+
+      return { code: HttpStatus.OK, msg: '删除成功' };
+    } catch (error) {
+      throw new HttpException(
+        '删除失败',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        { cause: error }
+      );
+    }
+  }
+
 }

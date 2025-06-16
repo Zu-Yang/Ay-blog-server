@@ -54,4 +54,9 @@ export class ArticleController {
   ) {
     return this.articleService.updateArticle(updateArticleDto);
   }
+  @Delete('deleteArticle')
+  @ApiOperation({ summary: '删除博文' })
+  deleteArticle(@Body('id') id: number) {
+    return this.articleService.deleteArticle(id);
+  }
 }

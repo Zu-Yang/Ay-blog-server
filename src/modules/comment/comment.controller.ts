@@ -3,7 +3,7 @@ import { CommentService } from './comment.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import type { addComment, getComment } from './type/type'
-import * as dayjs from 'dayjs'
+// import * as dayjs from 'dayjs'
 // const dayjs = require('dayjs');
 
 @Controller('comment')
@@ -12,7 +12,7 @@ export class CommentController {
 
   @Post('add')
   addComment(@Body() params: addComment) {
-    let { nick_name, user_email, user_avatar, user_ip, jump_url, biz_type, biz_id, comment_id, parent_id, reply_ip, content, deleted, approved, created_at, updated_at } = params
+    let { nick_name, user_email, user_avatar, user_ip, jump_url, biz_type, biz_id, comment_id, parent_id, reply_ip, content, created_at, updated_at } = params
 
     if (/\s/.test(nick_name)) {
       throw new HttpException('昵称不能有空格', HttpStatus.BAD_REQUEST);
@@ -30,34 +30,7 @@ export class CommentController {
       throw new HttpException('评论内容不能为空', HttpStatus.BAD_REQUEST);
     }
 
-    // 默认值
-    user_avatar = user_avatar == 'null' ? null : user_avatar
-    jump_url = jump_url == 'null' ? null : jump_url
-    biz_id = biz_id == null ? null : biz_id;
-    parent_id = parent_id == 'null' ? null : parent_id
-    deleted = 0; // 默认未删除
-    approved = 1; // 默认已审核
-    created_at = new Date(); // 使用当前日期时间
-    updated_at = new Date(); // 使用当前日期时间
-
-
-    return this.commentService.addComment({
-      nick_name,
-      user_email,
-      user_avatar,
-      user_ip,
-      jump_url,
-      biz_type,
-      biz_id,
-      comment_id,
-      parent_id,
-      reply_ip,
-      content,
-      deleted,
-      approved,
-      created_at,
-      updated_at,
-    });
+    return this.commentService.addComment(params);
   }
 
   @Get('list')
@@ -82,4 +55,22 @@ export class CommentController {
 
     return await this.commentService.getComment(params)
   }
+
+  @Delete('delete')
+  deleteComment(@Body() params: any) {
+    const { comment_id, biz_id, biz_type } = params;
+
+    if (!comment_id) {
+      throw new HttpException('缺少评论id字段', HttpStatus.BAD_REQUEST);
+    }
+    else if (!biz_id) {
+      throw new HttpException('缺少业务id字段', HttpStatus.BAD_REQUEST);
+    }
+    else if (!biz_type) {
+      throw new HttpException('缺少业务类型字段', HttpStatus.BAD_REQUEST);
+    }
+
+    return this.commentService.deleteComment(params);
+  }
+
 }
