@@ -1,15 +1,22 @@
 {
-  "version": 2,
-  "builds": [
+    "version": 2,
+    "public": false,
+    "builds": [
       {
-          "src": "dist/src/main.js",
-          "use": "@vercel/node"
+        "src": "dist/src/main.js",
+        "use": "@vercel/node"
       }
-  ],
-  "routes": [
+    ],
+    "rewrites": [
       {
-          "src": "/(.*)",
-          "dest": "dist/src/main.js"
+        "source": "/api/(.*)",
+        "destination": "/api/restful.js"
+      },
+      {
+        "source": "/(.*)",
+        "destination": "/"
       }
-  ]
-}
+    ],
+    "buildCommand": "cnpm install && npm run build",
+    "outputDirectory": "dist"
+  }
