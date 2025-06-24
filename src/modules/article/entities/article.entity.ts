@@ -2,7 +2,6 @@ import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
-  CreateDateColumn,
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
@@ -63,8 +62,12 @@ export class Article {
   article_update_user_id: number;
 
   @Column({
-    type: 'json',
-    comment: '封面图',
+    type: 'text',
+    comment: '封面图URL数组',
+    // transformer: {
+    //   to: (value: string[]) => value ? JSON.stringify(value) : [],
+    //   from: (value: string) => value ? JSON.parse(value) : [],
+    // },
   })
   article_cover: string[];
 

@@ -51,7 +51,7 @@ export class Visitor {
   @Column({ type: 'varchar', comment: '网络', nullable: true })
   net: string;
 
-  @Column({ type: 'json', comment: '用户点赞的文章id', nullable: true })
+  @Column({ type: 'text', comment: '用户点赞的文章id', nullable: true })
   article_like_list: { id: number; status: boolean }[];
 
   @OneToMany(() => Comment, (comment) => comment.visitor_info)

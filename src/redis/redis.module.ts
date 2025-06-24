@@ -17,9 +17,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
         return {
           type: 'single',
           url: `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
-          // options: {
-          //   password: process.env.REDIS_PASSWORD,
-          // },
+          options: {
+            password: process.env.REDIS_PASSWORD,
+          },
         }
       },
       // useFactory: () => ({
