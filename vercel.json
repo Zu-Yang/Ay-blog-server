@@ -5,7 +5,7 @@
         "src": "src/main.ts",
         "use": "@vercel/node",
         "config": {
-          "installCommand": "npm config set registry https://registry.npmmirror.com && npm install --legacy-peer-deps",
+          "installCommand": "cnpm install",
           "buildCommand": "npm run build"
         }
       }
