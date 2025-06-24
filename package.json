@@ -8,7 +8,6 @@
   "scripts": {
     "build": "nest build",
     "start": "cross-env NODE_ENV=development nest start",
-    "start:dev": "cross-env NODE_ENV=development nest start --watch",
     "start:dev": "ts-node scripts/start-all.ts",
     "start:debug": "nest start --debug --watch",
     "start:prod": "cross-env NODE_ENV=production node dist/src/main",
@@ -32,6 +31,7 @@
     "@nestjs/typeorm": "^10.0.2",
     "@webundsoehne/nest-fastify-file-upload": "^2.2.0",
     "axios": "^1.7.9",
+    "class-validator": "^0.14.2",
     "cross-env": "^7.0.3",
     "dayjs": "^1.11.13",
     "dotenv": "^16.4.5",

@@ -6,7 +6,7 @@ import { InjectRedis } from '@nestjs-modules/ioredis';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Article } from '../modules/article/entities/article.entity';
-import { Visitor } from '../modules/Visitor/entities/Visitor.entity';
+import { Visitor } from '../modules/visitor/entities/visitor.entity';
 
 @Injectable()
 export class RedisService {
